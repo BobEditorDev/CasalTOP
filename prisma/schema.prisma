@@ -1,124 +1,45 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-model User {
+enum TipoPagamento {
+  RODRIGO_PAGA
+  GIOVANA_PAGA
+  RODRIGO_PAGOU_DA_GIOVANA
+  GIOVANA_PAGOU_DO_RODRIGO
+}
+
+model Usuario {
   id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  incomes  Income[]
-  expenses Expense[]
+  nome      String   @unique // "Rodrigo" | "Giovana"
+  salario   Decimal  @db.Decimal(10, 2) // usado só pra calcular % de rateio
+  senhaHash String
+  gastos    Gasto[]
 }
 
-model Person {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  incomes  Income[]
-  expenses Expense[]
+model Gasto {
+  id         String         @id @default(cuid())
+  data       DateTime       // dia do gasto (mês é o que importa pro rateio)
+  categoria  String         // texto livre, com autocomplete no front
+  tipo       TipoPagamento
+  valor      Decimal        @db.Decimal(10, 2)
+  observacao String?
+  criadoEm   DateTime       @default(now())
+  atualizadoEm DateTime     @updatedAt
+  usuarioId  String
+  usuario    Usuario        @relation(fields: [usuarioId], references: [id])
 }
 
-model Category {
-  id        String   @id @default(cuid())
-  name      String
-  color     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  expenses Expense[]
-}
-
-model PaymentMethod {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  expenses Expense[]
-}
-
-model Income {
-  id            String   @id @default(cuid())
-  date          DateTime
-  competence    DateTime
-  description   String
-  amount        Decimal  @db.Decimal(10, 2)
-  observation   String?
-  userId        String
-  personId      String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  user   User   @relation(fields: [userId], references: [id])
-  person Person @relation(fields: [personId], references: [id])
-}
-
-model Expense {
-  id                String   @id @default(cuid())
-  date              DateTime
-  competence        DateTime
-  description       String
-  amount            Decimal  @db.Decimal(10, 2)
-  observation       String?
-  type              ExpenseType
-  userId            String
-  personId          String
-  categoryId        String
-  paymentMethodId   String
-  installmentGroupId String?
-  installmentNumber Int?
-  recurringExpenseId String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  user           User           @relation(fields: [userId], references: [id])
-  person         Person         @relation(fields: [personId], references: [id])
-  category       Category       @relation(fields: [categoryId], references: [id])
-  paymentMethod  PaymentMethod  @relation(fields: [paymentMethodId], references: [id])
-  installmentGroup  InstallmentGroup?  @relation(fields: [installmentGroupId], references: [id])
-  recurringExpense  RecurringExpense?  @relation(fields: [recurringExpenseId], references: [id])
-}
-
-model InstallmentGroup {
-  id                   String   @id @default(cuid())
-  description          String
-  totalAmount          Decimal  @db.Decimal(10, 2)
-  numberOfInstallments Int
-  firstInstallmentDate DateTime
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-
-  expenses Expense[]
-}
-
-model RecurringExpense {
-  id          String   @id @default(cuid())
-  description String
-  amount      Decimal  @db.Decimal(10, 2)
-  day         Int
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  expenses Expense[]
-}
-
-enum ExpenseType {
-  UNIQUE
-  INSTALLMENT
-  RECURRING
+model Configuracao {
+  id                String  @id @default(cuid())
+  percentualRodrigo   Decimal @db.Decimal(5, 2) // 62.5
+  percentualGiovana   Decimal @db.Decimal(5, 2) // 37.5
 }
