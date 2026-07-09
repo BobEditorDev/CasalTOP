@@ -1,4 +1,5 @@
 import { GastoForm } from "@/domains/gastos/components/GastoForm";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -24,22 +25,19 @@ export default function Home() {
           <GastoForm />
         </div>
 
-        <div className="mt-6 text-center">
-          <a
+        <div className="mt-6 text-center space-y-2">
+          <Link
             href="/lancamentos"
-            className="text-blue-600 hover:text-blue-800 font-medium"
+            className="block text-blue-600 hover:text-blue-800 font-medium"
           >
             Ver Lançamentos →
-          </a>
-        </div>
-        
-        <div className="mt-2 text-center">
-          <a
+          </Link>
+          <Link
             href="/resumo"
-            className="text-blue-600 hover:text-blue-800 font-medium"
+            className="block text-blue-600 hover:text-blue-800 font-medium"
           >
             Ver Resumo →
-          </a>
+          </Link>
         </div>
       </div>
     </div>

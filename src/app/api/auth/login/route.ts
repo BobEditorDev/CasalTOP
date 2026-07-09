@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({ success: true, usuario })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Erro ao fazer login' },
       { status: 500 }

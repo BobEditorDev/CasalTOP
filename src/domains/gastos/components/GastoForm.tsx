@@ -1,13 +1,18 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { createGasto } from '../actions'
 import { getDistinctCategorias } from '../actions'
 import { getSessaoUsuario } from '@/domains/auth/actions'
+import { formatDateInput } from '@/lib/date-utils'
 
 export function GastoForm() {
+  const router = useRouter()
+  const categoriaRef = useRef<HTMLInputElement>(null)
+
   const [formData, setFormData] = useState({
-    data: new Date().toISOString().split('T')[0],
+    data: formatDateInput(new Date()),
     categoria: '',
     tipo: 'RODRIGO_PAGA' as 'RODRIGO_PAGA' | 'GIOVANA_PAGA' | 'RODRIGO_PAGOU_DA_GIOVANA' | 'GIOVANA_PAGOU_DO_RODRIGO',
     valor: '',
@@ -20,13 +25,9 @@ export function GastoForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [mostrarSugestoes, setMostrarSugestoes] = useState(false)
   const [usuario, setUsuario] = useState<{ id: string; nome: string } | null>(null)
+  const [mensagem, setMensagem] = useState<string>('')
 
-  useEffect(() => {
-    loadUsuario()
-    loadCategorias()
-  }, [])
-
-  const loadUsuario = async () => {
+  const loadUsuario = useCallback(async () => {
     try {
       const usuarioSessao = await getSessaoUsuario()
       if (usuarioSessao) {
@@ -36,22 +37,27 @@ export function GastoForm() {
     } catch (error) {
       console.error('Failed to load usuario:', error)
     }
-  }
+  }, [])
 
-  const loadCategorias = async () => {
+  const loadCategorias = useCallback(async () => {
     try {
       const data = await getDistinctCategorias()
       setCategorias(data)
     } catch (error) {
       console.error('Failed to load categorias:', error)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    loadUsuario()
+    loadCategorias()
+  }, [loadUsuario, loadCategorias])
 
   const handleCategoriaChange = (value: string) => {
     setFormData(prev => ({ ...prev, categoria: value }))
-    
+
     if (value.length > 0) {
-      const filtradas = categorias.filter(cat => 
+      const filtradas = categorias.filter(cat =>
         cat.toLowerCase().includes(value.toLowerCase())
       ).slice(0, 5)
       setSugestoes(filtradas)
@@ -78,7 +84,7 @@ export function GastoForm() {
 
       // Limpar formulário e manter foco pronto para próximo lançamento
       setFormData({
-        data: new Date().toISOString().split('T')[0],
+        data: formatDateInput(new Date()),
         categoria: '',
         tipo: 'RODRIGO_PAGA',
         valor: '',
@@ -86,11 +92,12 @@ export function GastoForm() {
         usuarioId: formData.usuarioId
       })
 
-      // Feedback visual simples
-      alert('Gasto salvo com sucesso!')
+      setMensagem('Gasto salvo com sucesso!')
+      categoriaRef.current?.focus()
+      router.refresh()
     } catch (error) {
       console.error('Failed to create gasto:', error)
-      alert('Erro ao salvar gasto')
+      setMensagem('Erro ao salvar gasto')
     } finally {
       setIsSubmitting(false)
     }
@@ -106,11 +113,7 @@ export function GastoForm() {
 
   const handleValorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const numbers = e.target.value.replace(/\D/g, '')
-    const formatted = (Number(numbers) / 100).toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    })
-    e.target.value = formatted
+    e.target.value = formatCurrency(numbers)
     setFormData(prev => ({ ...prev, valor: numbers }))
   }
 
@@ -120,6 +123,12 @@ export function GastoForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {mensagem && (
+        <div className={`p-3 rounded-lg text-center text-sm ${mensagem.includes('sucesso') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          {mensagem}
+        </div>
+      )}
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Data
@@ -138,17 +147,18 @@ export function GastoForm() {
           Categoria
         </label>
         <input
+          ref={categoriaRef}
           type="text"
           value={formData.categoria}
           onChange={(e) => handleCategoriaChange(e.target.value)}
-          onFocus={() => setMostrarSugestoes(true)}
+          onFocus={() => formData.categoria.length > 0 && setMostrarSugestoes(true)}
           onBlur={() => setTimeout(() => setMostrarSugestoes(false), 200)}
           placeholder="Digite a categoria..."
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
           required
           autoComplete="off"
         />
-        
+
         {mostrarSugestoes && sugestoes.length > 0 && (
           <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto">
             {sugestoes.map((sugestao) => (
@@ -173,7 +183,7 @@ export function GastoForm() {
         </label>
         <select
           value={formData.tipo}
-          onChange={(e) => setFormData(prev => ({ ...prev, tipo: e.target.value as any }))}
+          onChange={(e) => setFormData(prev => ({ ...prev, tipo: e.target.value as 'RODRIGO_PAGA' | 'GIOVANA_PAGA' | 'RODRIGO_PAGOU_DA_GIOVANA' | 'GIOVANA_PAGOU_DO_RODRIGO' }))}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
           required
         >

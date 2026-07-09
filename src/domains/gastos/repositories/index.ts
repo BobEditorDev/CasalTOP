@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { Gasto, CreateGastoInput, UpdateGastoInput } from '../types'
+import { getStartOfMonth, getEndOfMonth } from '@/lib/date-utils'
 
 export class GastoRepository {
   async findAll(): Promise<Gasto[]> {
@@ -9,7 +10,7 @@ export class GastoRepository {
       },
       orderBy: { data: 'desc' }
     })
-    
+
     return gastos.map(gasto => ({
       ...gasto,
       valor: Number(gasto.valor)
@@ -23,9 +24,9 @@ export class GastoRepository {
         usuario: true
       }
     })
-    
+
     if (!gasto) return null
-    
+
     return {
       ...gasto,
       valor: Number(gasto.valor)
@@ -33,9 +34,9 @@ export class GastoRepository {
   }
 
   async findByMonth(year: number, month: number): Promise<Gasto[]> {
-    const startDate = new Date(year, month - 1, 1)
-    const endDate = new Date(year, month, 0)
-    
+    const startDate = getStartOfMonth(year, month)
+    const endDate = getEndOfMonth(year, month)
+
     const gastos = await prisma.gasto.findMany({
       where: {
         data: {
@@ -48,7 +49,7 @@ export class GastoRepository {
       },
       orderBy: { data: 'desc' }
     })
-    
+
     return gastos.map(gasto => ({
       ...gasto,
       valor: Number(gasto.valor)
@@ -61,7 +62,7 @@ export class GastoRepository {
       distinct: ['categoria'],
       orderBy: { categoria: 'asc' }
     })
-    
+
     return categorias.map(c => c.categoria)
   }
 
@@ -72,7 +73,7 @@ export class GastoRepository {
         usuario: true
       }
     })
-    
+
     return {
       ...gasto,
       valor: Number(gasto.valor)
@@ -87,7 +88,7 @@ export class GastoRepository {
         usuario: true
       }
     })
-    
+
     return {
       ...gasto,
       valor: Number(gasto.valor)
@@ -101,7 +102,7 @@ export class GastoRepository {
         usuario: true
       }
     })
-    
+
     return {
       ...gasto,
       valor: Number(gasto.valor)

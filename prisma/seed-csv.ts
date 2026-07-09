@@ -4,19 +4,53 @@ import * as path from 'path'
 
 const prisma = new PrismaClient()
 
-// Mapeamento de tipos em português para o enum
-const mapeamentoTipo: Record<string, TipoPagamento> = {
-  'Rodrigo Paga': 'RODRIGO_PAGA',
-  'Giovana Paga': 'GIOVANA_PAGA',
-  'Rodrigo Pagou da Giovana': 'RODRIGO_PAGOU_DA_GIOVANA',
-  'Giovana Pagou do Rodrigo': 'GIOVANA_PAGOU_DO_RODRIGO',
-  // Adicione outras variações conforme necessário
+// Mapeamento flexível de tipos em português para o enum
+function normalizarTipo(tipo: string): TipoPagamento | null {
+  const normalizado = tipo
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+
+  const map: Record<string, TipoPagamento> = {
+    'rodrigo paga': 'RODRIGO_PAGA',
+    'giovana paga': 'GIOVANA_PAGA',
+    'rodrigo pagou da giovana': 'RODRIGO_PAGOU_DA_GIOVANA',
+    'rodrigo pagou giovana': 'RODRIGO_PAGOU_DA_GIOVANA',
+    'pagou da giovana': 'RODRIGO_PAGOU_DA_GIOVANA',
+    'giovana pagou do rodrigo': 'GIOVANA_PAGOU_DO_RODRIGO',
+    'giovana pagou rodrigo': 'GIOVANA_PAGOU_DO_RODRIGO',
+    'pagou do rodrigo': 'GIOVANA_PAGOU_DO_RODRIGO'
+  }
+
+  return map[normalizado] || null
+}
+
+function parseCSVLine(line: string): string[] {
+  // Suporta campos entre aspas e vírgulas dentro de categoria
+  const result: string[] = []
+  let current = ''
+  let inQuotes = false
+
+  for (const char of line) {
+    if (char === '"') {
+      inQuotes = !inQuotes
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim())
+      current = ''
+    } else {
+      current += char
+    }
+  }
+
+  result.push(current.trim())
+  return result
 }
 
 async function importarCSV() {
   // Caminho para o arquivo CSV
   const csvPath = path.join(process.cwd(), 'dados-planilha.csv')
-  
+
   if (!fs.existsSync(csvPath)) {
     console.log('Arquivo CSV não encontrado:', csvPath)
     console.log('Crie o arquivo dados-planilha.csv com formato: data,categoria,tipo,valor')
@@ -26,12 +60,19 @@ async function importarCSV() {
 
   const csvContent = fs.readFileSync(csvPath, 'utf-8')
   const linhas = csvContent.split('\n').filter(line => line.trim())
-  
-  // Pular cabeçalho se existir
-  const dadosCSV = linhas.slice(1).map(linha => {
-    const [data, categoria, tipo, valor] = linha.split(',').map(item => item.trim())
-    return { data, categoria, tipo, valor }
-  })
+
+  if (linhas.length === 0) {
+    console.log('Arquivo CSV vazio')
+    return
+  }
+
+  // Detectar se a primeira linha é cabeçalho
+  const primeiraLinha = linhas[0]
+  const colunasPrimeira = parseCSVLine(primeiraLinha)
+  const primeiroValor = colunasPrimeira[0].toLowerCase()
+  const temCabecalho = ['data', 'date', 'dt'].some(termo => primeiroValor.includes(termo))
+
+  const dadosCSV = temCabecalho ? linhas.slice(1) : linhas
 
   const usuarioRodrigo = await prisma.usuario.findUnique({
     where: { nome: 'Rodrigo' }
@@ -43,23 +84,53 @@ async function importarCSV() {
 
   let importados = 0
   let erros = 0
+  const linhasComErro: string[] = []
 
   for (const linha of dadosCSV) {
     try {
-      const tipoEnum = mapeamentoTipo[linha.tipo]
-      
-      if (!tipoEnum) {
-        console.warn(`Tipo não reconhecido: ${linha.tipo}`)
+      const [dataStr, categoria, tipoStr, valorStr] = parseCSVLine(linha)
+
+      if (!dataStr || !categoria || !tipoStr || !valorStr) {
+        console.warn(`Linha incompleta ignorada: ${linha}`)
         erros++
+        linhasComErro.push(linha)
+        continue
+      }
+
+      const tipoEnum = normalizarTipo(tipoStr)
+
+      if (!tipoEnum) {
+        console.warn(`Tipo não reconhecido: ${tipoStr}`)
+        erros++
+        linhasComErro.push(linha)
+        continue
+      }
+
+      // Parse de data no formato YYYY-MM-DD sem fuso horário
+      const [ano, mes, dia] = dataStr.split('-').map(Number)
+      if (!ano || !mes || !dia) {
+        console.warn(`Data inválida: ${dataStr}`)
+        erros++
+        linhasComErro.push(linha)
+        continue
+      }
+
+      const data = new Date(ano, mes - 1, dia, 12, 0, 0)
+      const valor = Number(valorStr.replace(/[R$\s.]/g, '').replace(',', '.'))
+
+      if (isNaN(valor) || valor <= 0) {
+        console.warn(`Valor inválido: ${valorStr}`)
+        erros++
+        linhasComErro.push(linha)
         continue
       }
 
       await prisma.gasto.create({
         data: {
-          data: new Date(linha.data),
-          categoria: linha.categoria,
+          data,
+          categoria: categoria.replace(/^"|"$/g, ''),
           tipo: tipoEnum,
-          valor: parseFloat(linha.valor),
+          valor,
           usuarioId: usuarioRodrigo.id
         }
       })
@@ -68,12 +139,18 @@ async function importarCSV() {
     } catch (error) {
       console.error(`Erro ao importar linha: ${linha}`, error)
       erros++
+      linhasComErro.push(linha)
     }
   }
 
   console.log(`Importação concluída!`)
   console.log(`Importados: ${importados}`)
   console.log(`Erros: ${erros}`)
+
+  if (linhasComErro.length > 0) {
+    console.log('\nLinhas com erro:')
+    linhasComErro.forEach(linha => console.log(`  - ${linha}`))
+  }
 }
 
 importarCSV()

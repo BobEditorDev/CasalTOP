@@ -31,7 +31,7 @@ export default function LoginPage() {
       } else {
         setErro('Nome ou senha inválidos')
       }
-    } catch (error) {
+    } catch {
       setErro('Erro ao fazer login')
     } finally {
       setCarregando(false)

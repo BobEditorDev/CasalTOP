@@ -1,4 +1,5 @@
 import { TipoPagamento } from '@prisma/client'
+import { Decimal } from 'decimal.js'
 
 export interface ResultadoRateio {
   totalCompartilhado: number
@@ -11,6 +12,15 @@ export interface GastoParaCalculo {
   tipo: TipoPagamento
   valor: number
   data: Date
+  categoria: string
+}
+
+function toDecimal(value: number | Decimal): Decimal {
+  return value instanceof Decimal ? value : new Decimal(value)
+}
+
+function toNumber(value: Decimal): number {
+  return value.toNumber()
 }
 
 /**
@@ -34,40 +44,45 @@ export function calcularRateioMensal(
   // TotalCompartilhado(M) = Σ valor onde tipo ∈ {RODRIGO_PAGA, GIOVANA_PAGA}
   const totalCompartilhado = gastosDoMes
     .filter(gasto => gasto.tipo === 'RODRIGO_PAGA' || gasto.tipo === 'GIOVANA_PAGA')
-    .reduce((acc, gasto) => acc + gasto.valor, 0)
+    .reduce((acc, gasto) => acc.plus(toDecimal(gasto.valor)), new Decimal(0))
 
   // Calcular Parte Giovana
   // ParteGiovana(M) = TotalCompartilhado(M) × (percentualGiovana / 100)
   //                   + Σ valor onde tipo = RODRIGO_PAGOU_DA_GIOVANA
   //                   − Σ valor onde tipo = GIOVANA_PAGA
   //                   − Σ valor onde tipo = GIOVANA_PAGOU_DO_RODRIGO
-  const parteGiovanaBase = totalCompartilhado * (percentualGiovana / 100)
-  
+  const percentualGiovanaDecimal = new Decimal(percentualGiovana).div(100)
+  const parteGiovanaBase = totalCompartilhado.times(percentualGiovanaDecimal)
+
   const rodrigoPagouDaGiovana = gastosDoMes
     .filter(gasto => gasto.tipo === 'RODRIGO_PAGOU_DA_GIOVANA')
-    .reduce((acc, gasto) => acc + gasto.valor, 0)
-  
+    .reduce((acc, gasto) => acc.plus(toDecimal(gasto.valor)), new Decimal(0))
+
   const giovanaPagou = gastosDoMes
     .filter(gasto => gasto.tipo === 'GIOVANA_PAGA')
-    .reduce((acc, gasto) => acc + gasto.valor, 0)
-  
+    .reduce((acc, gasto) => acc.plus(toDecimal(gasto.valor)), new Decimal(0))
+
   const giovanaPagouDoRodrigo = gastosDoMes
     .filter(gasto => gasto.tipo === 'GIOVANA_PAGOU_DO_RODRIGO')
-    .reduce((acc, gasto) => acc + gasto.valor, 0)
+    .reduce((acc, gasto) => acc.plus(toDecimal(gasto.valor)), new Decimal(0))
 
-  const parteGiovana = parteGiovanaBase + rodrigoPagouDaGiovana - giovanaPagou - giovanaPagouDoRodrigo
+  const parteGiovana = parteGiovanaBase
+    .plus(rodrigoPagouDaGiovana)
+    .minus(giovanaPagou)
+    .minus(giovanaPagouDoRodrigo)
 
   // Calcular Parte Rodrigo (informativo)
   // ParteRodrigo(M) = TotalCompartilhado(M) × (percentualRodrigo / 100)
-  const parteRodrigo = totalCompartilhado * (percentualRodrigo / 100)
+  const percentualRodrigoDecimal = new Decimal(percentualRodrigo).div(100)
+  const parteRodrigo = totalCompartilhado.times(percentualRodrigoDecimal)
 
   // Se ParteGiovana der negativo, significa que Rodrigo deve transferir para Giovana
-  const giovanaDevePagar = parteGiovana >= 0
+  const giovanaDevePagar = parteGiovana.greaterThanOrEqualTo(0)
 
   return {
-    totalCompartilhado,
-    parteGiovana,
-    parteRodrigo,
+    totalCompartilhado: toNumber(totalCompartilhado),
+    parteGiovana: toNumber(parteGiovana),
+    parteRodrigo: toNumber(parteRodrigo),
     giovanaDevePagar
   }
 }
@@ -82,16 +97,16 @@ export function detectarCategoriasRecorrentes(gastos: GastoParaCalculo[]): strin
   gastos.forEach(gasto => {
     const data = new Date(gasto.data)
     const chaveMes = `${data.getFullYear()}-${data.getMonth()}`
-    
+
     if (!mesesDistintosPorCategoria.has(gasto.categoria)) {
       mesesDistintosPorCategoria.set(gasto.categoria, new Set())
     }
-    
+
     mesesDistintosPorCategoria.get(gasto.categoria)!.add(chaveMes)
   })
 
   const categoriasRecorrentes: string[] = []
-  
+
   mesesDistintosPorCategoria.forEach((meses, categoria) => {
     if (meses.size >= 6) {
       categoriasRecorrentes.push(categoria)
@@ -114,14 +129,14 @@ export function calcularGastosPorCategoria(
     return dataGasto.getFullYear() === ano && dataGasto.getMonth() === mes - 1
   })
 
-  const gastosPorCategoria = new Map<string, number>()
+  const gastosPorCategoria = new Map<string, Decimal>()
 
   gastosDoMes.forEach(gasto => {
-    const valorAtual = gastosPorCategoria.get(gasto.categoria) || 0
-    gastosPorCategoria.set(gasto.categoria, valorAtual + gasto.valor)
+    const valorAtual = gastosPorCategoria.get(gasto.categoria) || new Decimal(0)
+    gastosPorCategoria.set(gasto.categoria, valorAtual.plus(toDecimal(gasto.valor)))
   })
 
   return Array.from(gastosPorCategoria.entries())
-    .map(([categoria, valor]) => ({ categoria, valor }))
+    .map(([categoria, valor]) => ({ categoria, valor: toNumber(valor) }))
     .sort((a, b) => b.valor - a.valor)
 }
