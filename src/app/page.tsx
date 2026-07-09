@@ -4,9 +4,19 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-md mx-auto p-4">
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Controle Financeiro</h1>
-          <p className="text-gray-600">Rodrigo & Giovana</p>
+        <header className="mb-6 flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Controle Financeiro</h1>
+            <p className="text-gray-600">Rodrigo & Giovana</p>
+          </div>
+          <form action="/api/auth/logout" method="POST">
+            <button
+              type="submit"
+              className="text-sm text-red-600 hover:text-red-800"
+            >
+              Sair
+            </button>
+          </form>
         </header>
 
         <div className="bg-white rounded-lg shadow-md p-6">

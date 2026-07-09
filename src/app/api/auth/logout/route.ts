@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
-import { limparSessao } from '@/lib/auth'
+import { cookies } from 'next/headers'
 
 export async function POST() {
-  await limparSessao()
+  const cookieStore = await cookies()
+  cookieStore.delete('usuario')
   return NextResponse.json({ success: true })
 }

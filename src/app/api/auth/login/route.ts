@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { login, setSessaoUsuario } from '@/lib/auth'
+import { login } from '@/lib/auth'
+import { cookies } from 'next/headers'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +16,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    await setSessaoUsuario(usuario)
+    const cookieStore = await cookies()
+    cookieStore.set('usuario', JSON.stringify(usuario), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7 // 7 dias
+    })
 
     return NextResponse.json({ success: true, usuario })
   } catch (error) {

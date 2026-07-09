@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { createGasto } from '../actions'
 import { getDistinctCategorias } from '../actions'
-import { getSessaoUsuario } from '@/lib/auth'
+import { getSessaoUsuario } from '@/domains/auth/actions'
 
 export function GastoForm() {
   const [formData, setFormData] = useState({
