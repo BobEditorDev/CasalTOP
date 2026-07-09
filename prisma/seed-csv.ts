@@ -116,7 +116,16 @@ async function importarCSV() {
       }
 
       const data = new Date(ano, mes - 1, dia, 12, 0, 0)
-      const valor = Number(valorStr.replace(/[R$\s.]/g, '').replace(',', '.'))
+
+      // Parse de valor: detecta formato brasileiro (1.500,00) ou americano (1500.00)
+      let valorLimpo = valorStr.replace(/R\$/g, '').replace(/\s/g, '').trim()
+
+      if (valorLimpo.includes(',')) {
+        // Formato brasileiro: remove pontos de milhar e substitui vírgula por ponto
+        valorLimpo = valorLimpo.replace(/\./g, '').replace(/,/g, '.')
+      }
+
+      const valor = Number(valorLimpo)
 
       if (isNaN(valor) || valor <= 0) {
         console.warn(`Valor inválido: ${valorStr}`)
@@ -125,10 +134,15 @@ async function importarCSV() {
         continue
       }
 
+      const categoriaLimpa = categoria
+        .replace(/^"|"$/g, '')
+        .trim()
+        .replace(/^\(sem descrição\)$/i, 'Sem descrição')
+
       await prisma.gasto.create({
         data: {
           data,
-          categoria: categoria.replace(/^"|"$/g, ''),
+          categoria: categoriaLimpa,
           tipo: tipoEnum,
           valor,
           usuarioId: usuarioRodrigo.id
