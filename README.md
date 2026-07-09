@@ -1,36 +1,232 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CasalTOP - Sistema Financeiro Residencial
 
-## Getting Started
+Sistema financeiro residencial desenvolvido para substituir planilhas, mantendo a simplicidade e praticidade.
 
-First, run the development server:
+## 🚀 Tecnologias
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Next.js 16** (App Router) - Framework React
+- **TypeScript** - Tipagem estática
+- **Tailwind CSS** - Estilização
+- **Prisma ORM** - Acesso ao banco
+- **PostgreSQL** - Banco de dados
+- **Zod** - Validação
+
+## 📁 Estrutura do Projeto
+
+```
+src/
+├── app/                    # Rotas Next.js
+├── domains/               # Domínios de negócio
+│   ├── categories/       # Categorias
+│   ├── people/          # Pessoas
+│   ├── payment-methods/ # Formas de pagamento
+│   ├── incomes/         # Receitas
+│   ├── expenses/        # Despesas
+│   ├── installments/    # Parcelamentos
+│   ├── recurring/       # Recorrências
+│   ├── dashboard/       # Dashboard
+│   └── reports/         # Relatórios
+├── shared/              # Recursos compartilhados
+└── lib/                 # Configurações
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Comandos de Desenvolvimento
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Instalar dependências
+npm install
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Executar em desenvolvimento
+npm run dev
 
-## Learn More
+# Build para produção
+npm run build
 
-To learn more about Next.js, take a look at the following resources:
+# Iniciar produção
+npm start
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Validar arquitetura
+npm run validate:architecture
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Validar TypeScript
+npm run typecheck
 
-## Deploy on Vercel
+# Executar linter
+npm run lint
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Validação completa
+npm run validate
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🏗️ Arquitetura
+
+O projeto segue **Feature First Architecture** com separação clara de responsabilidades:
+
+### Camadas
+- **Actions**: Server Actions para operações de escrita
+- **Services**: Regras de negócio
+- **Repositories**: Acesso ao banco via Prisma
+- **Components**: Componentes React
+- **Types**: Definições TypeScript
+- **Validations**: Schemas Zod
+
+### Padrão de Domínio
+Cada domínio segue a estrutura padrão:
+```
+domain/
+├── actions/          # Server Actions
+├── components/       # Componentes React
+├── repositories/     # Acesso Prisma
+├── services/         # Regras de negócio
+├── types/           # TypeScript types
+├── validations/     # Zod schemas
+├── utils/           # Utilitários
+└── index.ts         # Exportações públicas
+```
+
+## 📖 Documentação para Agentes de IA
+
+- **AGENTS.md** - Guia completo de arquitetura para agentes de IA
+- **.ai-instructions.md** - Instruções rápidas para codificação
+- **.ai-context.md** - Contexto do projeto para agentes
+
+## 🎯 Funcionalidades
+
+### Cadastros Básicos
+- ✅ Categorias (com cores)
+- ✅ Pessoas
+- ✅ Formas de pagamento
+
+### Lançamentos Financeiros
+- ✅ Receitas (com competência mensal)
+- ✅ Despesas (Única, Parcelada, Recorrente)
+- ✅ Parcelamentos (geração automática)
+- ✅ Recorrências (despesas fixas)
+
+### Relatórios
+- ✅ Dashboard (indicadores em tempo real)
+- ✅ Relatórios mensais
+- ✅ Gastos por categoria
+- ✅ Gastos por pessoa
+- ✅ Evolução receitas vs despesas
+
+## 🚀 Como Começar
+
+1. **Clone o repositório**
+```bash
+git clone <repository-url>
+cd casal-top
+```
+
+2. **Instale as dependências**
+```bash
+npm install
+```
+
+3. **Configure o banco de dados**
+```bash
+# Editar .env com suas credenciais PostgreSQL
+cp .env.example .env
+```
+
+4. **Execute as migrações**
+```bash
+npx prisma migrate dev
+```
+
+5. **Inicie o desenvolvimento**
+```bash
+npm run dev
+```
+
+Acesse `http://localhost:3000`
+
+## 🧪 Validação
+
+O projeto possui validação automática de arquitetura:
+
+```bash
+# Validar arquitetura antes de commits
+npm run validate:architecture
+
+# Validação completa
+npm run validate
+```
+
+## 📝 Regras de Desenvolvimento
+
+### ✅ Sempre fazer
+- Seguir a estrutura de domínios
+- Usar Server Actions para escrita
+- Validar com Zod
+- Usar TypeScript estrito
+- Atualizar index.ts exports
+
+### ❌ Nunca fazer
+- Violar estrutura de domínios
+- Misturar responsabilidades
+- Usar `any` type
+- Acessar Prisma fora de repositories
+- Esquecer revalidatePath
+
+## 🔧 Configuração
+
+### Variáveis de Ambiente
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/database"
+```
+
+### Prisma
+```bash
+# Visualizar banco
+npx prisma studio
+
+# Criar migração
+npx prisma migrate dev --name migration_name
+
+# Gerar client
+npx prisma generate
+```
+
+## 📊 Banco de Dados
+
+### Entidades Principais
+- User
+- Person
+- Category
+- PaymentMethod
+- Income
+- Expense
+- InstallmentGroup
+- RecurringExpense
+
+## 🤖 Desenvolvimento com Agentes de IA
+
+Este projeto é otimizado para desenvolvimento com agentes de IA (Claude, GPT, Gemini, SWE-1.6).
+
+### Para Agentes de IA:
+1. Leia AGENTS.md primeiro
+2. Siga os padrões estabelecidos
+3. Execute validação de arquitetura
+4. Mantenha a consistência
+
+## 🚦 Status do Projeto
+
+- ✅ Estrutura base
+- ✅ Cadastros básicos
+- ✅ Receitas e despesas
+- ✅ Parcelamentos
+- ✅ Recorrências
+- ✅ Dashboard
+- ✅ Relatórios
+- ⏳ Autenticação (TODO)
+- ⏳ Testes automatizados (TODO)
+- ⏳ Exportação de dados (TODO)
+
+## 📄 Licença
+
+Este projeto é privado e confidencial.
+
+---
+
+**Desenvolvido com ❤️ para facilitar a vida financeira familiar**

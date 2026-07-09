@@ -1,0 +1,11 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run architecture validation
+node scripts/architecture-validator.js
+
+# Run TypeScript check
+npm run typecheck 2>/dev/null || npx tsc --noEmit
+
+# Run lint
+npm run lint 2>/dev/null || npx next lint
