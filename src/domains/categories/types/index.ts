@@ -1,7 +1,7 @@
 export interface Category {
   id: string
   name: string
-  color?: string
+  color?: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -12,7 +12,6 @@ export interface CreateCategoryInput {
 }
 
 export interface UpdateCategoryInput {
-  id: string
   name?: string
   color?: string
 }

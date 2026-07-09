@@ -1,9 +1,10 @@
 import { prisma } from '@/lib/prisma'
 import { Expense, CreateExpenseInput, UpdateExpenseInput } from '../types'
+import { decimalToNumber } from '@/shared/utils/prisma'
 
 export class ExpenseRepository {
   async findAll(): Promise<Expense[]> {
-    return prisma.expense.findMany({
+    const expenses = await prisma.expense.findMany({
       include: {
         person: true,
         category: true,
@@ -11,10 +12,19 @@ export class ExpenseRepository {
       },
       orderBy: { date: 'desc' }
     })
+    
+    return expenses.map(expense => ({
+      ...expense,
+      amount: decimalToNumber(expense.amount),
+      observation: expense.observation || undefined,
+      installmentGroupId: expense.installmentGroupId || undefined,
+      installmentNumber: expense.installmentNumber || undefined,
+      recurringExpenseId: expense.recurringExpenseId || undefined
+    }))
   }
 
   async findById(id: string): Promise<Expense | null> {
-    return prisma.expense.findUnique({
+    const expense = await prisma.expense.findUnique({
       where: { id },
       include: {
         person: true,
@@ -22,13 +32,24 @@ export class ExpenseRepository {
         paymentMethod: true
       }
     })
+    
+    if (!expense) return null
+    
+    return {
+      ...expense,
+      amount: decimalToNumber(expense.amount),
+      observation: expense.observation || undefined,
+      installmentGroupId: expense.installmentGroupId || undefined,
+      installmentNumber: expense.installmentNumber || undefined,
+      recurringExpenseId: expense.recurringExpenseId || undefined
+    }
   }
 
   async findByCompetence(year: number, month: number): Promise<Expense[]> {
     const startDate = new Date(year, month - 1, 1)
     const endDate = new Date(year, month, 0)
     
-    return prisma.expense.findMany({
+    const expenses = await prisma.expense.findMany({
       where: {
         competence: {
           gte: startDate,
@@ -42,10 +63,19 @@ export class ExpenseRepository {
       },
       orderBy: { date: 'desc' }
     })
+    
+    return expenses.map(expense => ({
+      ...expense,
+      amount: decimalToNumber(expense.amount),
+      observation: expense.observation || undefined,
+      installmentGroupId: expense.installmentGroupId || undefined,
+      installmentNumber: expense.installmentNumber || undefined,
+      recurringExpenseId: expense.recurringExpenseId || undefined
+    }))
   }
 
   async create(data: CreateExpenseInput): Promise<Expense> {
-    return prisma.expense.create({
+    const expense = await prisma.expense.create({
       data,
       include: {
         person: true,
@@ -53,10 +83,19 @@ export class ExpenseRepository {
         paymentMethod: true
       }
     })
+    
+    return {
+      ...expense,
+      amount: decimalToNumber(expense.amount),
+      observation: expense.observation || undefined,
+      installmentGroupId: expense.installmentGroupId || undefined,
+      installmentNumber: expense.installmentNumber || undefined,
+      recurringExpenseId: expense.recurringExpenseId || undefined
+    }
   }
 
   async update(id: string, data: UpdateExpenseInput): Promise<Expense> {
-    return prisma.expense.update({
+    const expense = await prisma.expense.update({
       where: { id },
       data,
       include: {
@@ -65,10 +104,19 @@ export class ExpenseRepository {
         paymentMethod: true
       }
     })
+    
+    return {
+      ...expense,
+      amount: decimalToNumber(expense.amount),
+      observation: expense.observation || undefined,
+      installmentGroupId: expense.installmentGroupId || undefined,
+      installmentNumber: expense.installmentNumber || undefined,
+      recurringExpenseId: expense.recurringExpenseId || undefined
+    }
   }
 
   async delete(id: string): Promise<Expense> {
-    return prisma.expense.delete({
+    const expense = await prisma.expense.delete({
       where: { id },
       include: {
         person: true,
@@ -76,6 +124,15 @@ export class ExpenseRepository {
         paymentMethod: true
       }
     })
+    
+    return {
+      ...expense,
+      amount: decimalToNumber(expense.amount),
+      observation: expense.observation || undefined,
+      installmentGroupId: expense.installmentGroupId || undefined,
+      installmentNumber: expense.installmentNumber || undefined,
+      recurringExpenseId: expense.recurringExpenseId || undefined
+    }
   }
 }
 

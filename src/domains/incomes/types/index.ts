@@ -4,7 +4,7 @@ export interface Income {
   competence: Date
   description: string
   amount: number
-  observation?: string
+  observation?: string | null
   userId: string
   personId: string
   createdAt: Date
@@ -26,7 +26,6 @@ export interface CreateIncomeInput {
 }
 
 export interface UpdateIncomeInput {
-  id: string
   date?: Date
   competence?: Date
   description?: string

@@ -10,6 +10,5 @@ export interface CreatePersonInput {
 }
 
 export interface UpdatePersonInput {
-  id: string
   name?: string
 }

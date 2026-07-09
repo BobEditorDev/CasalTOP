@@ -1,9 +1,10 @@
 import { prisma } from '@/lib/prisma'
 import { RecurringExpense, CreateRecurringExpenseInput, UpdateRecurringExpenseInput } from '../types'
+import { decimalToNumber } from '@/shared/utils/prisma'
 
 export class RecurringExpenseRepository {
   async findAll(): Promise<RecurringExpense[]> {
-    return prisma.recurringExpense.findMany({
+    const expenses = await prisma.recurringExpense.findMany({
       include: {
         expenses: {
           orderBy: { date: 'desc' },
@@ -12,10 +13,19 @@ export class RecurringExpenseRepository {
       },
       orderBy: { description: 'asc' }
     })
+    
+    return expenses.map(expense => ({
+      ...expense,
+      amount: decimalToNumber(expense.amount),
+      expenses: expense.expenses.map(e => ({
+        ...e,
+        amount: decimalToNumber(e.amount)
+      }))
+    }))
   }
 
   async findActive(): Promise<RecurringExpense[]> {
-    return prisma.recurringExpense.findMany({
+    const expenses = await prisma.recurringExpense.findMany({
       where: { active: true },
       include: {
         expenses: {
@@ -25,10 +35,19 @@ export class RecurringExpenseRepository {
       },
       orderBy: { description: 'asc' }
     })
+    
+    return expenses.map(expense => ({
+      ...expense,
+      amount: decimalToNumber(expense.amount),
+      expenses: expense.expenses.map(e => ({
+        ...e,
+        amount: decimalToNumber(e.amount)
+      }))
+    }))
   }
 
   async findById(id: string): Promise<RecurringExpense | null> {
-    return prisma.recurringExpense.findUnique({
+    const expense = await prisma.recurringExpense.findUnique({
       where: { id },
       include: {
         expenses: {
@@ -36,25 +55,54 @@ export class RecurringExpenseRepository {
         }
       }
     })
+    
+    if (!expense) return null
+    
+    return {
+      ...expense,
+      amount: decimalToNumber(expense.amount),
+      expenses: expense.expenses.map(e => ({
+        ...e,
+        amount: decimalToNumber(e.amount)
+      }))
+    }
   }
 
   async create(data: CreateRecurringExpenseInput): Promise<RecurringExpense> {
-    return prisma.recurringExpense.create({
+    const expense = await prisma.recurringExpense.create({
       data
     })
+    
+    return {
+      ...expense,
+      amount: decimalToNumber(expense.amount),
+      expenses: []
+    }
   }
 
   async update(id: string, data: UpdateRecurringExpenseInput): Promise<RecurringExpense> {
-    return prisma.recurringExpense.update({
+    const expense = await prisma.recurringExpense.update({
       where: { id },
       data
     })
+    
+    return {
+      ...expense,
+      amount: decimalToNumber(expense.amount),
+      expenses: []
+    }
   }
 
   async delete(id: string): Promise<RecurringExpense> {
-    return prisma.recurringExpense.delete({
+    const expense = await prisma.recurringExpense.delete({
       where: { id }
     })
+    
+    return {
+      ...expense,
+      amount: decimalToNumber(expense.amount),
+      expenses: []
+    }
   }
 }
 

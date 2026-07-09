@@ -1,9 +1,10 @@
 import { prisma } from '@/lib/prisma'
 import { InstallmentGroup, CreateInstallmentGroupInput } from '../types'
+import { decimalToNumber } from '@/shared/utils/prisma'
 
 export class InstallmentRepository {
   async findAll(): Promise<InstallmentGroup[]> {
-    return prisma.installmentGroup.findMany({
+    const groups = await prisma.installmentGroup.findMany({
       include: {
         expenses: {
           orderBy: { installmentNumber: 'asc' }
@@ -11,10 +12,19 @@ export class InstallmentRepository {
       },
       orderBy: { createdAt: 'desc' }
     })
+    
+    return groups.map(group => ({
+      ...group,
+      totalAmount: decimalToNumber(group.totalAmount),
+      expenses: group.expenses.map(expense => ({
+        ...expense,
+        amount: decimalToNumber(expense.amount)
+      }))
+    }))
   }
 
   async findById(id: string): Promise<InstallmentGroup | null> {
-    return prisma.installmentGroup.findUnique({
+    const group = await prisma.installmentGroup.findUnique({
       where: { id },
       include: {
         expenses: {
@@ -22,18 +32,41 @@ export class InstallmentRepository {
         }
       }
     })
+    
+    if (!group) return null
+    
+    return {
+      ...group,
+      totalAmount: decimalToNumber(group.totalAmount),
+      expenses: group.expenses.map(expense => ({
+        ...expense,
+        amount: decimalToNumber(expense.amount)
+      }))
+    }
   }
 
   async create(data: CreateInstallmentGroupInput): Promise<InstallmentGroup> {
-    return prisma.installmentGroup.create({
+    const group = await prisma.installmentGroup.create({
       data
     })
+    
+    return {
+      ...group,
+      totalAmount: decimalToNumber(group.totalAmount),
+      expenses: []
+    }
   }
 
   async delete(id: string): Promise<InstallmentGroup> {
-    return prisma.installmentGroup.delete({
+    const group = await prisma.installmentGroup.delete({
       where: { id }
     })
+    
+    return {
+      ...group,
+      totalAmount: decimalToNumber(group.totalAmount),
+      expenses: []
+    }
   }
 }
 

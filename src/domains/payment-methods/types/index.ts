@@ -10,6 +10,5 @@ export interface CreatePaymentMethodInput {
 }
 
 export interface UpdatePaymentMethodInput {
-  id: string
   name?: string
 }

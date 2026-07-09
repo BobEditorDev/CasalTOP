@@ -35,10 +35,6 @@ export const InstallmentForm: React.FC<InstallmentFormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
   const loadData = async () => {
     try {
       const [peopleData, categoriesData, paymentMethodsData] = await Promise.all([
@@ -53,6 +49,10 @@ export const InstallmentForm: React.FC<InstallmentFormProps> = ({
       console.error('Failed to load data:', error)
     }
   }
+
+  useEffect(() => {
+    loadData()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

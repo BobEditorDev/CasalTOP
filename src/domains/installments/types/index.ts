@@ -10,7 +10,7 @@ export interface InstallmentGroup {
     id: string
     date: Date
     amount: number
-    installmentNumber: number
+    installmentNumber: number | null
   }>
 }
 

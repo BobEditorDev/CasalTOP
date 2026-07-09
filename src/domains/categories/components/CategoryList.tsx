@@ -9,7 +9,7 @@ interface CategoryListProps {
   categories: Array<{
     id: string
     name: string
-    color?: string
+    color?: string | null
   }>
 }
 

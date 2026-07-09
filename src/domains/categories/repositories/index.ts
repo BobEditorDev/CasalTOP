@@ -3,34 +3,61 @@ import { Category, CreateCategoryInput, UpdateCategoryInput } from '../types'
 
 export class CategoryRepository {
   async findAll(): Promise<Category[]> {
-    return prisma.category.findMany({
+    const categories = await prisma.category.findMany({
       orderBy: { name: 'asc' }
     })
+    
+    return categories.map(category => ({
+      ...category,
+      color: category.color || undefined
+    }))
   }
 
   async findById(id: string): Promise<Category | null> {
-    return prisma.category.findUnique({
+    const category = await prisma.category.findUnique({
       where: { id }
     })
+    
+    if (!category) return null
+    
+    return {
+      ...category,
+      color: category.color || undefined
+    }
   }
 
   async create(data: CreateCategoryInput): Promise<Category> {
-    return prisma.category.create({
+    const category = await prisma.category.create({
       data
     })
+    
+    return {
+      ...category,
+      color: category.color || undefined
+    }
   }
 
   async update(id: string, data: UpdateCategoryInput): Promise<Category> {
-    return prisma.category.update({
+    const category = await prisma.category.update({
       where: { id },
       data
     })
+    
+    return {
+      ...category,
+      color: category.color || undefined
+    }
   }
 
   async delete(id: string): Promise<Category> {
-    return prisma.category.delete({
+    const category = await prisma.category.delete({
       where: { id }
     })
+    
+    return {
+      ...category,
+      color: category.color || undefined
+    }
   }
 }
 

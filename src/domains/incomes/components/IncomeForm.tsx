@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react'
 import { Input } from '@/shared/ui/Input'
 import { DatePicker } from '@/shared/ui/DatePicker'
-import { MoneyInput } from '@/shared/ui/MoneyInput'
 import { Button } from '@/shared/ui/Button'
 import { createIncome, updateIncome } from '../actions'
 import { getPeople } from '@/domains/people/actions'
@@ -40,10 +39,6 @@ export const IncomeForm: React.FC<IncomeFormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  useEffect(() => {
-    loadPeople()
-  }, [])
-
   const loadPeople = async () => {
     try {
       const data = await getPeople()
@@ -52,6 +47,10 @@ export const IncomeForm: React.FC<IncomeFormProps> = ({
       console.error('Failed to load people:', error)
     }
   }
+
+  useEffect(() => {
+    loadPeople()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -93,11 +92,6 @@ export const IncomeForm: React.FC<IncomeFormProps> = ({
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  const parseAmount = (value: string): number => {
-    const numbers = value.replace(/\D/g, '')
-    return Number(numbers) / 100
   }
 
   return (

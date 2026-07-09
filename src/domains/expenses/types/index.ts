@@ -4,15 +4,15 @@ export interface Expense {
   competence: Date
   description: string
   amount: number
-  observation?: string
+  observation?: string | null
   type: 'UNIQUE' | 'INSTALLMENT' | 'RECURRING'
   userId: string
   personId: string
   categoryId: string
   paymentMethodId: string
-  installmentGroupId?: string
-  installmentNumber?: number
-  recurringExpenseId?: string
+  installmentGroupId?: string | null
+  installmentNumber?: number | null
+  recurringExpenseId?: string | null
   createdAt: Date
   updatedAt: Date
   person?: {
@@ -22,7 +22,7 @@ export interface Expense {
   category?: {
     id: string
     name: string
-    color?: string
+    color?: string | null
   }
   paymentMethod?: {
     id: string
@@ -47,7 +47,6 @@ export interface CreateExpenseInput {
 }
 
 export interface UpdateExpenseInput {
-  id: string
   date?: Date
   competence?: Date
   description?: string

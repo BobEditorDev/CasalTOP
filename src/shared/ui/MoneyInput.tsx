@@ -11,15 +11,6 @@ export const MoneyInput: React.FC<MoneyInputProps> = ({
   className = '',
   ...props
 }) => {
-  const formatCurrency = (value: string) => {
-    const numbers = value.replace(/\D/g, '')
-    const formatted = (Number(numbers) / 100).toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    })
-    return formatted
-  }
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     const numbers = value.replace(/\D/g, '')

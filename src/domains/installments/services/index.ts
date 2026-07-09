@@ -1,5 +1,5 @@
 import { installmentRepository } from '../repositories'
-import { CreateInstallmentGroupInput, InstallmentPlan } from '../types'
+import { CreateInstallmentGroupInput } from '../types'
 import { prisma } from '@/lib/prisma'
 
 export class InstallmentService {

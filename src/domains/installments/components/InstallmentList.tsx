@@ -11,13 +11,13 @@ interface InstallmentListProps {
     description: string
     totalAmount: number
     numberOfInstallments: number
-    firstInstallmentDate: string
-    createdAt: string
+    firstInstallmentDate: Date | string
+    createdAt: Date | string
     expenses?: Array<{
       id: string
-      date: string
+      date: Date | string
       amount: number
-      installmentNumber: number
+      installmentNumber: number | null
     }>
   }>
 }
@@ -32,15 +32,17 @@ export const InstallmentList: React.FC<InstallmentListProps> = ({ groups }) => {
     }
   }
 
-  const handleDeleteFuture = async (groupId: string, currentNumber: number) => {
+  const handleDeleteFuture = async (groupId: string, currentNumber: number | null) => {
+    if (currentNumber === null) return
     if (confirm(`Tem certeza que deseja excluir as parcelas futuras a partir da ${currentNumber + 1}?`)) {
       await deleteFutureInstallments(groupId, currentNumber)
       router.refresh()
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR')
+  const formatDate = (dateString: Date | string) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString
+    return date.toLocaleDateString('pt-BR')
   }
 
   const formatCurrency = (value: number) => {
@@ -84,11 +86,11 @@ export const InstallmentList: React.FC<InstallmentListProps> = ({ groups }) => {
                 {group.expenses.map((expense) => (
                   <div key={expense.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                     <div className="flex items-center space-x-3">
-                      <span className="font-medium">{expense.installmentNumber}/{group.numberOfInstallments}</span>
+                      <span className="font-medium">{expense.installmentNumber || 0}/{group.numberOfInstallments}</span>
                       <span className="text-sm">{formatDate(expense.date)}</span>
                       <span className="text-sm font-medium">{formatCurrency(expense.amount)}</span>
                     </div>
-                    {expense.installmentNumber < group.numberOfInstallments && (
+                    {expense.installmentNumber && expense.installmentNumber < group.numberOfInstallments ? (
                       <Button 
                         variant="danger" 
                         size="sm"
@@ -96,7 +98,7 @@ export const InstallmentList: React.FC<InstallmentListProps> = ({ groups }) => {
                       >
                         Excluir Futuras
                       </Button>
-                    )}
+                    ) : null}
                   </div>
                 ))}
               </div>

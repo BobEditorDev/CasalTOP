@@ -8,22 +8,22 @@ import { useRouter } from 'next/navigation'
 interface ExpenseListProps {
   expenses: Array<{
     id: string
-    date: string
-    competence: string
+    date: Date | string
+    competence: Date | string
     description: string
     amount: number
-    observation?: string
+    observation?: string | null | undefined
     type: 'UNIQUE' | 'INSTALLMENT' | 'RECURRING'
-    person: {
+    person?: {
       id: string
       name: string
     }
-    category: {
+    category?: {
       id: string
       name: string
-      color?: string
+      color?: string | null
     }
-    paymentMethod: {
+    paymentMethod?: {
       id: string
       name: string
     }
@@ -40,8 +40,9 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses }) => {
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR')
+  const formatDate = (dateString: Date | string) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString
+    return date.toLocaleDateString('pt-BR')
   }
 
   const formatCurrency = (value: number) => {
@@ -99,8 +100,8 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses }) => {
                   {getTypeLabel(expense.type)}
                 </span>
               </td>
-              <td className="p-3">{expense.person.name}</td>
-              <td className="p-3">{expense.category.name}</td>
+              <td className="p-3">{expense.person?.name || '-'}</td>
+              <td className="p-3">{expense.category?.name || '-'}</td>
               <td className="p-3 text-red-600 font-medium">{formatCurrency(expense.amount)}</td>
               <td className="p-3">
                 <Button 

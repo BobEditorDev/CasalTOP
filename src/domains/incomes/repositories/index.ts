@@ -1,30 +1,45 @@
 import { prisma } from '@/lib/prisma'
 import { Income, CreateIncomeInput, UpdateIncomeInput } from '../types'
+import { decimalToNumber } from '@/shared/utils/prisma'
 
 export class IncomeRepository {
   async findAll(): Promise<Income[]> {
-    return prisma.income.findMany({
+    const incomes = await prisma.income.findMany({
       include: {
         person: true
       },
       orderBy: { date: 'desc' }
     })
+    
+    return incomes.map(income => ({
+      ...income,
+      amount: decimalToNumber(income.amount),
+      observation: income.observation || undefined
+    }))
   }
 
   async findById(id: string): Promise<Income | null> {
-    return prisma.income.findUnique({
+    const income = await prisma.income.findUnique({
       where: { id },
       include: {
         person: true
       }
     })
+    
+    if (!income) return null
+    
+    return {
+      ...income,
+      amount: decimalToNumber(income.amount),
+      observation: income.observation || undefined
+    }
   }
 
   async findByCompetence(year: number, month: number): Promise<Income[]> {
     const startDate = new Date(year, month - 1, 1)
     const endDate = new Date(year, month, 0)
     
-    return prisma.income.findMany({
+    const incomes = await prisma.income.findMany({
       where: {
         competence: {
           gte: startDate,
@@ -36,34 +51,58 @@ export class IncomeRepository {
       },
       orderBy: { date: 'desc' }
     })
+    
+    return incomes.map(income => ({
+      ...income,
+      amount: decimalToNumber(income.amount),
+      observation: income.observation || undefined
+    }))
   }
 
   async create(data: CreateIncomeInput): Promise<Income> {
-    return prisma.income.create({
+    const income = await prisma.income.create({
       data,
       include: {
         person: true
       }
     })
+    
+    return {
+      ...income,
+      amount: decimalToNumber(income.amount),
+      observation: income.observation || undefined
+    }
   }
 
   async update(id: string, data: UpdateIncomeInput): Promise<Income> {
-    return prisma.income.update({
+    const income = await prisma.income.update({
       where: { id },
       data,
       include: {
         person: true
       }
     })
+    
+    return {
+      ...income,
+      amount: decimalToNumber(income.amount),
+      observation: income.observation || undefined
+    }
   }
 
   async delete(id: string): Promise<Income> {
-    return prisma.income.delete({
+    const income = await prisma.income.delete({
       where: { id },
       include: {
         person: true
       }
     })
+    
+    return {
+      ...income,
+      amount: decimalToNumber(income.amount),
+      observation: income.observation || undefined
+    }
   }
 }
 

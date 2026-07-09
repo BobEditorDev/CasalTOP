@@ -20,7 +20,6 @@ export interface CreateRecurringExpenseInput {
 }
 
 export interface UpdateRecurringExpenseInput {
-  id: string
   description?: string
   amount?: number
   day?: number

@@ -12,10 +12,11 @@ interface RecurringExpenseListProps {
     amount: number
     day: number
     active: boolean
-    createdAt: string
+    createdAt: Date | string
+    updatedAt: Date | string
     expenses?: Array<{
       id: string
-      date: string
+      date: Date | string
       amount: number
     }>
   }>

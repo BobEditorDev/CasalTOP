@@ -8,12 +8,12 @@ import { useRouter } from 'next/navigation'
 interface IncomeListProps {
   incomes: Array<{
     id: string
-    date: string
-    competence: string
+    date: Date | string
+    competence: Date | string
     description: string
     amount: number
-    observation?: string
-    person: {
+    observation?: string | null | undefined
+    person?: {
       id: string
       name: string
     }
@@ -30,8 +30,9 @@ export const IncomeList: React.FC<IncomeListProps> = ({ incomes }) => {
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR')
+  const formatDate = (dateString: Date | string) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString
+    return date.toLocaleDateString('pt-BR')
   }
 
   const formatCurrency = (value: number) => {
@@ -64,7 +65,7 @@ export const IncomeList: React.FC<IncomeListProps> = ({ incomes }) => {
               <td className="p-3">{formatDate(income.date)}</td>
               <td className="p-3">{formatDate(income.competence)}</td>
               <td className="p-3">{income.description}</td>
-              <td className="p-3">{income.person.name}</td>
+              <td className="p-3">{income.person?.name || '-'}</td>
               <td className="p-3 text-green-600 font-medium">{formatCurrency(income.amount)}</td>
               <td className="p-3">
                 <Button 

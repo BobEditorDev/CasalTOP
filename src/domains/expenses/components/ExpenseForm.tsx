@@ -49,10 +49,6 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
   const loadData = async () => {
     try {
       const [peopleData, categoriesData, paymentMethodsData] = await Promise.all([
@@ -67,6 +63,10 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
       console.error('Failed to load data:', error)
     }
   }
+
+  useEffect(() => {
+    loadData()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
