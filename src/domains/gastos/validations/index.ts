@@ -7,7 +7,13 @@ export const createGastoSchema = z.object({
   tipo: z.nativeEnum(TipoPagamento),
   valor: z.coerce.number().positive('Valor deve ser positivo'),
   observacao: z.string().optional(),
-  usuarioId: z.string()
+  usuarioId: z.string(),
+  parcelado: z.boolean().optional(),
+  totalParcelas: z.coerce.number().optional(),
+  parcelaAtual: z.coerce.number().optional(),
+  parcelamentoGrupoId: z.string().optional(),
+  fixo: z.boolean().optional(),
+  fixoGrupoId: z.string().optional(),
 })
 
 export const updateGastoSchema = z.object({
@@ -15,7 +21,13 @@ export const updateGastoSchema = z.object({
   categoria: z.string().min(1).optional(),
   tipo: z.nativeEnum(TipoPagamento).optional(),
   valor: z.coerce.number().positive().optional(),
-  observacao: z.string().optional()
+  observacao: z.string().optional(),
+  parcelado: z.boolean().optional(),
+  totalParcelas: z.coerce.number().optional(),
+  parcelaAtual: z.coerce.number().optional(),
+  parcelamentoGrupoId: z.string().optional(),
+  fixo: z.boolean().optional(),
+  fixoGrupoId: z.string().optional(),
 })
 
 export type CreateGastoInput = z.infer<typeof createGastoSchema>

@@ -10,6 +10,12 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Cores personalizadas para tipos de pagamento */
+  --color-rodrigo-paga: #2563eb; /* Azul */
+  --color-giovana-paga: #7c3aed; /* Roxo */
+  --color-rodrigo-pagou-g: #16a34a; /* Verde */
+  --color-giovana-pagou-r: #ea580c; /* Laranja */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,6 +27,15 @@
 
 body {
   background: var(--background);
+  background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,0.1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,0.1) 0, transparent 50%);
+  background-attachment: fixed;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-color-scheme: light) {
+  body {
+    background-image: radial-gradient(at 0% 0%, hsla(253,16%,97%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,70%,0.1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,70%,0.1) 0, transparent 50%);
+  }
 }

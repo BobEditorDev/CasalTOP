@@ -5,10 +5,12 @@
  */
 
 export function parseDateInput(dateString: string): Date {
-  // Input type="date" retorna 'YYYY-MM-DD'.
-  // new Date('YYYY-MM-DD') interpreta como UTC, então criamos a data
-  // usando os componentes ano/mês/dia no fuso local.
-  const [year, month, day] = dateString.split('-').map(Number)
+  const parts = dateString.split('-').map(Number)
+  if (parts.length === 2) {
+    const [year, month] = parts
+    return new Date(year, month - 1, 1, 12, 0, 0)
+  }
+  const [year, month, day] = parts
   return new Date(year, month - 1, day, 12, 0, 0)
 }
 
@@ -17,6 +19,12 @@ export function formatDateInput(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
+}
+
+export function formatMonthInput(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  return `${year}-${month}`
 }
 
 export function isSameMonth(date: Date, year: number, month: number): boolean {

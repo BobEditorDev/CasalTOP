@@ -13,7 +13,11 @@ export class GastoRepository {
 
     return gastos.map(gasto => ({
       ...gasto,
-      valor: Number(gasto.valor)
+      valor: Number(gasto.valor),
+      usuario: {
+        ...gasto.usuario,
+        salario: Number(gasto.usuario.salario)
+      }
     }))
   }
 
@@ -29,7 +33,11 @@ export class GastoRepository {
 
     return {
       ...gasto,
-      valor: Number(gasto.valor)
+      valor: Number(gasto.valor),
+      usuario: {
+        ...gasto.usuario,
+        salario: Number(gasto.usuario.salario)
+      }
     }
   }
 
@@ -47,12 +55,19 @@ export class GastoRepository {
       include: {
         usuario: true
       },
-      orderBy: { data: 'desc' }
+      orderBy: [
+        { data: 'desc' },
+        { criadoEm: 'desc' }
+      ]
     })
 
     return gastos.map(gasto => ({
       ...gasto,
-      valor: Number(gasto.valor)
+      valor: Number(gasto.valor),
+      usuario: {
+        ...gasto.usuario,
+        salario: Number(gasto.usuario.salario)
+      }
     }))
   }
 
@@ -76,7 +91,11 @@ export class GastoRepository {
 
     return {
       ...gasto,
-      valor: Number(gasto.valor)
+      valor: Number(gasto.valor),
+      usuario: {
+        ...gasto.usuario,
+        salario: Number(gasto.usuario.salario)
+      }
     }
   }
 
@@ -91,7 +110,11 @@ export class GastoRepository {
 
     return {
       ...gasto,
-      valor: Number(gasto.valor)
+      valor: Number(gasto.valor),
+      usuario: {
+        ...gasto.usuario,
+        salario: Number(gasto.usuario.salario)
+      }
     }
   }
 
@@ -105,7 +128,11 @@ export class GastoRepository {
 
     return {
       ...gasto,
-      valor: Number(gasto.valor)
+      valor: Number(gasto.valor),
+      usuario: {
+        ...gasto.usuario,
+        salario: Number(gasto.usuario.salario)
+      }
     }
   }
 }

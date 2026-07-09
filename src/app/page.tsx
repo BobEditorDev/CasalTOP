@@ -1,45 +1,48 @@
-import { GastoForm } from "@/domains/gastos/components/GastoForm";
-import Link from "next/link";
+import { redirect } from 'next/navigation'
+import { getSessaoUsuario } from '@/domains/auth/actions'
+import { getMonthSummary, getDistinctCategorias, getTopCategorias } from '@/domains/gastos/actions'
+import { GastoDashboardClient } from '@/domains/gastos/components/GastoDashboardClient'
 
-export default function Home() {
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function Home({ searchParams }: PageProps) {
+  const usuario = await getSessaoUsuario()
+  if (!usuario) {
+    redirect('/login')
+  }
+
+  const resolvedSearchParams = await searchParams
+  const mesParam = resolvedSearchParams.mes as string | undefined
+  const categoriaParam = resolvedSearchParams.categoria as string | undefined
+  
+  let year = new Date().getFullYear()
+  let month = new Date().getMonth() + 1
+
+  if (mesParam && /^\d{4}-\d{2}$/.test(mesParam)) {
+    const [y, m] = mesParam.split('-').map(Number)
+    year = y
+    month = m
+  }
+
+  // Carregar os dados de forma paralela
+  const [summary, distinctCategorias, topCategorias] = await Promise.all([
+    getMonthSummary(year, month),
+    getDistinctCategorias(),
+    getTopCategorias(year, month)
+  ])
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-md mx-auto p-4">
-        <header className="mb-6 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Controle Financeiro</h1>
-            <p className="text-gray-600">Rodrigo & Giovana</p>
-          </div>
-          <form action="/api/auth/logout" method="POST">
-            <button
-              type="submit"
-              className="text-sm text-red-600 hover:text-red-800"
-            >
-              Sair
-            </button>
-          </form>
-        </header>
-
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Novo Gasto</h2>
-          <GastoForm />
-        </div>
-
-        <div className="mt-6 text-center space-y-2">
-          <Link
-            href="/lancamentos"
-            className="block text-blue-600 hover:text-blue-800 font-medium"
-          >
-            Ver Lançamentos →
-          </Link>
-          <Link
-            href="/resumo"
-            className="block text-blue-600 hover:text-blue-800 font-medium"
-          >
-            Ver Resumo →
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
+    <GastoDashboardClient
+      initialGastos={summary.gastos}
+      rateio={summary.rateio}
+      distinctCategorias={distinctCategorias}
+      topCategorias={topCategorias}
+      usuarioId={usuario.id}
+      percentualRodrigo={summary.percentualRodrigo}
+      percentualGiovana={summary.percentualGiovana}
+      filtroCategoria={categoriaParam}
+    />
+  )
 }

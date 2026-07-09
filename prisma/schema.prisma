@@ -26,16 +26,22 @@ model Usuario {
 }
 
 model Gasto {
-  id         String         @id @default(cuid())
-  data       DateTime       // dia do gasto (mês é o que importa pro rateio)
-  categoria  String         // texto livre, com autocomplete no front
-  tipo       TipoPagamento
-  valor      Decimal        @db.Decimal(10, 2)
-  observacao String?
-  criadoEm   DateTime       @default(now())
-  atualizadoEm DateTime     @updatedAt
-  usuarioId  String
-  usuario    Usuario        @relation(fields: [usuarioId], references: [id])
+  id                  String        @id @default(cuid())
+  data                DateTime
+  categoria           String
+  tipo                TipoPagamento
+  valor               Decimal       @db.Decimal(10, 2)
+  observacao          String?
+  parcelado           Boolean       @default(false)
+  totalParcelas       Int?
+  parcelaAtual        Int?
+  parcelamentoGrupoId String?
+  fixo                Boolean       @default(false)
+  fixoGrupoId         String?
+  criadoEm            DateTime      @default(now())
+  atualizadoEm        DateTime      @updatedAt
+  usuarioId           String
+  usuario             Usuario       @relation(fields: [usuarioId], references: [id])
 }
 
 model Configuracao {
